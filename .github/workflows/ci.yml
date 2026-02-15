@@ -1,4 +1,4 @@
-name: CI-CD Pipelinn
+name: CI-CD Pipeline
 
 on:
   push:
@@ -13,10 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Run tests
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          python -m unittest discover
+
+      - name: Run tests
+        run: |
+          python -m unittest discover -s . -p "test_*.py"
 
       - name: Deploy to Ubuntu Server
         uses: appleboy/ssh-action@v1.0.0
