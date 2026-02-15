@@ -7,7 +7,7 @@ on:
 
 jobs:
   test-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -26,16 +26,10 @@ jobs:
         run: |
           python -m unittest discover -s . -p "test_*.py"
 
-      - name: Deploy to Ubuntu Server
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: 192.168.0.110
-          username: admin1
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            cd ~/ci-cd-python
-            git pull
-            docker build -t mysite .
-            docker stop mysite || true
-            docker rm mysite || true
-            docker run -d -p 80:5000 --name mysite mysite
+      - name: Deploy with Docker
+        run: |
+          cd ~/ci-cd-python
+          docker build -t mysite .
+          docker stop mysite || true
+          docker rm mysite || true
+          docker run -d -p 80:5000 --name mysite mysite
