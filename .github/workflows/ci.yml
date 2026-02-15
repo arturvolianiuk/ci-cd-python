@@ -1,31 +1,33 @@
-name: CI Pipeline
+name: CI-CD Pipeline
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  test-and-build:
+  test-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Run tests
-        run: pytest
+        run: |
+          pip install -r requirements.txt
+          python -m unittest discover
 
-      - name: Build Docker image
-        run: docker build -t flask-ci-app .
+      - name: Deploy to Ubuntu Server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 192.168.0.110
+          username: admin1
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ~/ci-cd-python
+            git pull
+            docker build -t mysite .
+            docker stop mysite || true
+            docker rm mysite || true
+            docker run -d -p 80:5000 --name mysite mysite
